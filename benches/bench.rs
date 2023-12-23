@@ -14,68 +14,30 @@ macro_rules! factorial_bench {
 macro_rules! factorial {
     ($n:expr, $ctx:ident) => {
         paste! {
-            #[inline(never)]
-            fn [<factorial_ $n>](mut n: u64) -> u64 {
-                let mut m = 1u64;
-                while n > 1 {
-                    m = m.saturating_mul(n);
-                    n -= 1;
-                    unsafe {
-                        std::arch::asm!{
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop",
-                            "nop"
-                        }
-                    }
-                }
-                m + $n
+            fn [<factorial_ $n>](n: u64) -> u64 {
+                factorial::<$n>(n)
             }
         }
     };
+}
+
+#[inline(always)]
+fn factorial<const N: u64>(mut n: u64) -> u64 {
+    let mut m = 1u64;
+    while n > 1 {
+        m = m.saturating_mul(n);
+        n -= 1;
+        unsafe {
+            #[rustfmt::skip]
+            std::arch::asm!{
+                "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
+                "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
+                "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
+                "nop", "nop", "nop", "nop", "nop", "nop",
+            }
+        }
+    }
+    m + N
 }
 
 macro_rules! define_multiple {
