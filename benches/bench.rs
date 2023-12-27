@@ -21,6 +21,15 @@ fn factorial<const N: u64>(mut n: u64) -> u64 {
                 "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
                 "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
                 "nop", "nop", "nop", "nop", "nop", "nop",
+
+                // This block is using 5 byte long nop instructions which are much
+                // more efficient in the terms of uops caching and does not produce such
+                // a big performance difference between different versions of the same function.
+                // "nop qword ptr [rax + rax]", "nop qword ptr [rax + rax]",
+                // "nop qword ptr [rax + rax]", "nop qword ptr [rax + rax]",
+                // "nop qword ptr [rax + rax]", "nop qword ptr [rax + rax]",
+                // "nop qword ptr [rax + rax]", "nop",
+
             }
         }
     }
@@ -38,6 +47,7 @@ macro_rules! factorial_benchmark {
 macro_rules! factorial {
     ($n:expr, $ctx:ident) => {
         paste! {
+            #[inline(never)]
             fn [<factorial_ $n>](n: u64) -> u64 {
                 factorial::<$n>(n)
             }
