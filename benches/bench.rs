@@ -20,7 +20,7 @@ fn factorial<const N: u64>(mut n: u64) -> u64 {
                 "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
                 "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
                 "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
-                "nop", "nop", "nop", "nop", "nop", "nop",
+                "nop", "nop", "nop", "nop", "nop", "nop", "nop", "nop",
 
                 // This block is using 5 byte long nop instructions which are much
                 // more efficient in the terms of uops caching and does not produce such
@@ -33,7 +33,7 @@ fn factorial<const N: u64>(mut n: u64) -> u64 {
             }
         }
     }
-    m + N
+    m + black_box(N) * 0
 }
 
 macro_rules! factorial_benchmark {
@@ -73,6 +73,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("factorials");
     g.measurement_time(Duration::from_secs(1));
     g.warm_up_time(Duration::from_millis(1));
+
+    assert_eq!(factorial_1(10), factorial_10(10));
 
     define_multiple!(factorial_benchmark, g, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 }
