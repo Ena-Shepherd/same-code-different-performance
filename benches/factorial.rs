@@ -1,11 +1,15 @@
-use std::time::Duration;
+#![feature(fn_align)]
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use paste::paste;
+use std::time::Duration;
 
 /// This factorial function must always be inlined to produce different aligned version of the same function
 #[inline(always)]
 fn factorial<const N: u64>(mut n: u64) -> u64 {
+    // This is a dummy code needed to prevent from collapsing all the factorial functions into one by linker
+    unsafe { std::ptr::read_volatile(&N) };
+
     let mut m = 1u64;
     while n > 1 {
         m = m.saturating_mul(n);
@@ -33,7 +37,7 @@ fn factorial<const N: u64>(mut n: u64) -> u64 {
             }
         }
     }
-    m + black_box(N) * 0
+    m
 }
 
 macro_rules! factorial_benchmark {
@@ -48,6 +52,7 @@ macro_rules! factorial {
     ($n:expr, $ctx:ident) => {
         paste! {
             #[inline(never)]
+            #[repr(align(16))]
             fn [<factorial_ $n>](n: u64) -> u64 {
                 factorial::<$n>(n)
             }
@@ -72,8 +77,9 @@ define_multiple!(factorial, skip, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 pub fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("factorials");
     g.measurement_time(Duration::from_secs(1));
-    g.warm_up_time(Duration::from_millis(1));
+    g.warm_up_time(Duration::from_millis(100));
 
+    // Sanechecking that all the factorial functions are producing the same results
     assert_eq!(factorial_1(10), factorial_10(10));
 
     define_multiple!(factorial_benchmark, g, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

@@ -9,7 +9,7 @@ edition = "2021"
 
 
 [[bench]]
-name = "bench"
+name = "factorial"
 harness = false
 
 [dev-dependencies]
