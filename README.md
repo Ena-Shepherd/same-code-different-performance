@@ -8,10 +8,8 @@ Using some linker shenenigans, we produce several identical versions of the same
 
 ## How to reproduce
 
-This effect is present to some extent on all modern x86-64 CPUs. However, the effect is most pronounced on Intel Sandy Bridge and newer CPUs with addition of Decoded Stream Buffer. Tested in `Intel(R) Core(TM) i7-1068NG7 CPU @ 2.30GHz`
-
 ```console
-$ cargo bench -q --bench=factorial
+$ cargo run --release -- --bench
 
 factorials/factorial_1  time:   [331.11 ns 333.89 ns 337.15 ns]
 factorials/factorial_2  time:   [255.63 ns 258.37 ns 261.76 ns]
@@ -26,3 +24,12 @@ factorials/factorial_10 time:   [256.85 ns 258.82 ns 260.62 ns]
 ```
 
 In this setup functions 1, 4, 5, 8, 9 are predictabily slower than functions 2, 3, 6, 7, 10. The effect is persistent across multiple runs.
+
+## Perpoducibility
+
+This effect is present to some extent on all modern x86-64 CPUs although circumstances required to reporouce it differs slightly on different microarchitectures. The effect is most pronounced on Intel Sandy Bridge and newer CPUs with addition of Decoded Stream Buffer.
+
+Tested on:
+
+- `Intel Core i7-1068NG7` on `darwin 23.2.0`
+- `Intel Core i7-1068NG7` on `linux 6.5.13`
