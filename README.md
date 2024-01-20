@@ -27,9 +27,10 @@ In this setup functions 1, 4, 5, 8, 9 are predictabily slower than functions 2, 
 
 ## Perpoducibility
 
-This effect is present to some extent on all modern x86-64 CPUs although circumstances required to reporouce it differs slightly on different microarchitectures. The effect is most pronounced on Intel Sandy Bridge and newer CPUs with addition of Decoded Stream Buffer.
+This effect is present to some extent on all modern x86-64 CPUs although circumstances required to reporouce it differs slightly on different microarchitectures. The effect is most pronounced on Intel Sandy Bridge and newer CPUs with addition of Decoded Stream Buffer. To reproduce the result on some particular microarchitecture you may need to play with the number of `nop`s placed in a loop.
 
 Tested on:
 
 - `Intel Core i7-1068NG7` on `darwin 23.2.0`
 - `Intel Core i7-1068NG7` on `linux 6.5.13`
+- `Intel(R) Xeon(R) CPU E5-2651 v2 @ 1.80GHz` on AWS c1.medium
