@@ -1,5 +1,7 @@
 #![feature(fn_align)]
 
+use std::{hint::black_box, time::Instant};
+
 use paste::paste;
 use same_code_different_performance::make_asm_nops;
 
@@ -88,6 +90,70 @@ criterion::criterion_main!(benches);
 
 #[cfg(not(feature = "criterion"))]
 fn main() {
-    unsafe { __asm_nops() };
-    println!("{}", 1);
+    let mut min = u64::max_value();
+    let mut max = u64::min_value();
+
+    let value = measure(factorial_1);
+    println!("factorial_1 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_2);
+    println!("factorial_2 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_3);
+    println!("factorial_3 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_4);
+    println!("factorial_4 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_5);
+    println!("factorial_5 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_6);
+    println!("factorial_6 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_7);
+    println!("factorial_7 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_8);
+    println!("factorial_8 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_9);
+    println!("factorial_9 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    let value = measure(factorial_10);
+    println!("factorial_10 = {}", value);
+    min = min.min(value);
+    max = max.max(value);
+
+    println!("{}, {} = {}", min, max, max - min)
+}
+
+fn measure(f: fn(u64) -> u64) -> u64 {
+    const ITER: usize = 100000;
+    let mut min = u64::max_value();
+    for i in 0..ITER {
+        let time = Instant::now();
+        black_box(f(black_box(100)));
+        min = min.min(time.elapsed().as_nanos() as u64);
+    }
+
+    min
 }
