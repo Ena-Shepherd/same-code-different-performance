@@ -147,12 +147,14 @@ fn main() {
 }
 
 fn measure(f: fn(u64) -> u64) -> u64 {
-    const ITER: usize = 100000;
+    const ITER: usize = 1000;
     let mut min = u64::max_value();
-    for i in 0..ITER {
+    for _ in 0..ITER {
         let time = Instant::now();
-        black_box(f(black_box(100)));
-        min = min.min(time.elapsed().as_nanos() as u64);
+        for _ in 0..10 {
+            black_box(f(black_box(100)));
+        }
+        min = min.min(time.elapsed().as_nanos() as u64 / 10);
     }
 
     min
