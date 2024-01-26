@@ -1,9 +1,8 @@
 #![feature(fn_align)]
 
-use std::{hint::black_box, time::Instant};
-
 use paste::paste;
 use same_code_different_performance::make_asm_nops;
+use std::{hint::black_box, io::Write, time::Instant};
 
 // Creates __asm_nops() functions with sequence of NOP instructions. The number of instructions
 // is given in NOP_COUNT env variable at compile time
@@ -28,14 +27,6 @@ fn factorial<const N: u64>(mut n: u64) -> u64 {
         }
     }
     m
-}
-
-macro_rules! factorial_benchmark {
-    ($n:expr, $ctx:ident) => {
-        paste! {
-            $ctx.bench_function(concat!("factorial_", $n), |b| b.iter(|| [<factorial_ $n>](black_box(100))));
-        }
-    };
 }
 
 macro_rules! factorial {
@@ -70,6 +61,14 @@ mod criterion_support {
     use criterion::{black_box, Criterion};
     use std::time::Duration;
 
+    macro_rules! factorial_benchmark {
+        ($n:expr, $ctx:ident) => {
+            paste! {
+                $ctx.bench_function(concat!("factorial_", $n), |b| b.iter(|| [<factorial_ $n>](black_box(100))));
+            }
+        };
+    }
+
     pub fn bench(c: &mut Criterion) {
         let mut g = c.benchmark_group("factorials");
         g.measurement_time(Duration::from_secs(1));
@@ -90,71 +89,86 @@ criterion::criterion_main!(benches);
 
 #[cfg(not(feature = "criterion"))]
 fn main() {
+    use std::io::stderr;
+
     let mut min = u64::max_value();
     let mut max = u64::min_value();
 
     let value = measure(factorial_1);
-    println!("factorial_1 = {}", value);
+    writeln!(stderr(), "factorial_1 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_2);
-    println!("factorial_2 = {}", value);
+    writeln!(stderr(), "factorial_2 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_3);
-    println!("factorial_3 = {}", value);
+    writeln!(stderr(), "factorial_3 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_4);
-    println!("factorial_4 = {}", value);
+    writeln!(stderr(), "factorial_4 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_5);
-    println!("factorial_5 = {}", value);
+    writeln!(stderr(), "factorial_5 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_6);
-    println!("factorial_6 = {}", value);
+    writeln!(stderr(), "factorial_6 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_7);
-    println!("factorial_7 = {}", value);
+    writeln!(stderr(), "factorial_7 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_8);
-    println!("factorial_8 = {}", value);
+    writeln!(stderr(), "factorial_8 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_9);
-    println!("factorial_9 = {}", value);
+    writeln!(stderr(), "factorial_9 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     let value = measure(factorial_10);
-    println!("factorial_10 = {}", value);
+    writeln!(stderr(), "factorial_10 = {}", value).unwrap();
     min = min.min(value);
     max = max.max(value);
 
     println!("{}, {} = {}", min, max, max - min)
 }
 
+#[cfg(not(feature = "criterion"))]
 fn measure(f: fn(u64) -> u64) -> u64 {
-    const ITER: usize = 1000;
+    const SAMPLES: usize = 1000;
+    const SAMPLE_SIZE: usize = 10;
     let mut min = u64::max_value();
-    for _ in 0..ITER {
+
+    // Warm up iterations to familiarize CPU with the code
+    for _ in 0..SAMPLES / 10 {
+        black_box(f(black_box(100)));
+    }
+
+    for _ in 0..SAMPLES {
         let time = Instant::now();
-        for _ in 0..10 {
+        for _ in 0..SAMPLE_SIZE {
             black_box(f(black_box(100)));
         }
-        min = min.min(time.elapsed().as_nanos() as u64 / 10);
+        let time = time.elapsed().as_nanos() as u64 / SAMPLE_SIZE as u64;
+
+        // Measuring minimum execution time as a measure of the performance.
+        // For more information about why and when it is appropriate see:
+        //  https://betterprogramming.pub/the-mean-misleads-why-the-minimum-is-the-true-measure-of-a-functions-run-time-47fa079075b0
+        min = min.min(time);
     }
 
     min

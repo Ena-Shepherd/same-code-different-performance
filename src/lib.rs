@@ -3,7 +3,7 @@ use proc_macro::TokenStream;
 
 #[proc_macro]
 pub fn make_asm_nops(_item: TokenStream) -> TokenStream {
-    let nop_count: usize = env!("NOP_COUNT").parse().unwrap();
+    let nop_count: usize = option_env!("NOP_COUNT").unwrap_or("1").parse().unwrap();
     let nops = std::iter::repeat(r#""nop""#)
         .take(nop_count)
         .collect::<Vec<_>>()
