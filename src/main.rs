@@ -33,7 +33,7 @@ macro_rules! factorial {
     ($n:expr, $ctx:ident) => {
         paste! {
             #[inline(never)]
-            #[repr(align(16))]
+            #[cfg_attr(feature = "align", repr(align(32)))]
             fn [<factorial_ $n>](n: u64) -> u64 {
                 factorial::<$n>(n)
             }

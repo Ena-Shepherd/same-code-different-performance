@@ -7,8 +7,9 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-criterion = "0.5.1"
+criterion = { verson = "0.5.1", optional = true }
 paste = "1.0.14"
 
 [features]
-criterion = []
+criterion = ["dep:criterion"]
+align = []
