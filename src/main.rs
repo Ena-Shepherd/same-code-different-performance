@@ -91,6 +91,8 @@ criterion::criterion_main!(benches);
 fn main() {
     use std::io::stderr;
 
+    use same_code_different_performance::nop_count;
+
     let mut min = u64::max_value();
     let mut max = u64::min_value();
 
@@ -144,13 +146,17 @@ fn main() {
     min = min.min(value);
     max = max.max(value);
 
-    println!("{}, {} = {}", min, max, max - min)
+    println!(
+        "NOP_COUNT={} max-min difference = {}",
+        nop_count!(),
+        max - min
+    )
 }
 
 #[cfg(not(feature = "criterion"))]
 fn measure(f: fn(u64) -> u64) -> u64 {
-    const SAMPLES: usize = 1000;
-    const SAMPLE_SIZE: usize = 10;
+    const SAMPLES: usize = 10000;
+    const SAMPLE_SIZE: usize = 100;
     let mut min = u64::max_value();
 
     // Warm up iterations to familiarize CPU with the code
