@@ -11,7 +11,8 @@ make_asm_nops!();
 /// This factorial function must always be inlined to produce different aligned version of the same function
 #[inline(always)]
 fn factorial<const N: u64>(mut n: u64) -> u64 {
-    // This is a dummy code needed to prevent from collapsing all the factorial functions into one by linker
+    // The linker is smart enough to collapse identical functions into a single one.
+    // This is dummy code needed to prevent the linker from doing that.
     unsafe { std::ptr::read_volatile(&N) };
 
     let mut m = 1u64;
@@ -71,11 +72,6 @@ mod criterion_support {
 
     pub fn bench(c: &mut Criterion) {
         let mut g = c.benchmark_group("factorials");
-        g.measurement_time(Duration::from_secs(1));
-        g.warm_up_time(Duration::from_millis(100));
-
-        // Sanechecking that all the factorial functions are producing the same results
-        assert_eq!(factorial_1(10), factorial_10(10));
 
         define_multiple!(factorial_benchmark, g, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     }
@@ -89,62 +85,31 @@ criterion::criterion_main!(benches);
 
 #[cfg(not(feature = "criterion"))]
 fn main() {
-    use std::io::stderr;
-
     use same_code_different_performance::nop_count;
+    use std::io::stderr;
 
     let mut min = u64::max_value();
     let mut max = u64::min_value();
 
-    let value = measure(factorial_1);
-    writeln!(stderr(), "factorial_1 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
+    let functions = [
+        factorial_1,
+        factorial_2,
+        factorial_3,
+        factorial_4,
+        factorial_5,
+        factorial_6,
+        factorial_7,
+        factorial_8,
+        factorial_9,
+        factorial_10,
+    ];
 
-    let value = measure(factorial_2);
-    writeln!(stderr(), "factorial_2 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_3);
-    writeln!(stderr(), "factorial_3 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_4);
-    writeln!(stderr(), "factorial_4 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_5);
-    writeln!(stderr(), "factorial_5 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_6);
-    writeln!(stderr(), "factorial_6 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_7);
-    writeln!(stderr(), "factorial_7 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_8);
-    writeln!(stderr(), "factorial_8 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_9);
-    writeln!(stderr(), "factorial_9 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
-
-    let value = measure(factorial_10);
-    writeln!(stderr(), "factorial_10 = {}", value).unwrap();
-    min = min.min(value);
-    max = max.max(value);
+    for (i, f) in functions.into_iter().enumerate() {
+        let value = measure(f);
+        writeln!(stderr(), "factorial_{} = {}", i + 1, value).unwrap();
+        min = min.min(value);
+        max = max.max(value);
+    }
 
     println!(
         "NOP_COUNT={} max-min difference = {}",
@@ -160,7 +125,7 @@ fn measure(f: fn(u64) -> u64) -> u64 {
     let mut min = u64::max_value();
 
     // Warm up iterations to familiarize CPU with the code
-    for _ in 0..SAMPLES / 10 {
+    for _ in 0..(SAMPLES / 10) {
         black_box(f(black_box(100)));
     }
 
@@ -178,4 +143,17 @@ fn measure(f: fn(u64) -> u64) -> u64 {
     }
 
     min
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn check_equavalent() {
+        // Sanechecking that all the factorial functions are producing the same results
+        for i in 1..10 {
+            assert_eq!(factorial_1(i), factorial_10(i));
+        }
+    }
 }
