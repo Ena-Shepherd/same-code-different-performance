@@ -85,28 +85,34 @@ criterion::criterion_main!(benches);
 
 #[cfg(not(feature = "criterion"))]
 fn main() {
+    use rand::{seq::SliceRandom, thread_rng};
     use same_code_different_performance::nop_count;
     use std::io::stderr;
+
+    let mut rnd = thread_rng();
 
     let mut min = u64::max_value();
     let mut max = u64::min_value();
 
-    let functions = [
-        factorial_1,
-        factorial_2,
-        factorial_3,
-        factorial_4,
-        factorial_5,
-        factorial_6,
-        factorial_7,
-        factorial_8,
-        factorial_9,
-        factorial_10,
+    let mut functions: [(usize, fn(u64) -> u64); 10] = [
+        (1, factorial_1),
+        (2, factorial_2),
+        (3, factorial_3),
+        (4, factorial_4),
+        (5, factorial_5),
+        (6, factorial_6),
+        (7, factorial_7),
+        (8, factorial_8),
+        (9, factorial_9),
+        (10, factorial_10),
     ];
 
-    for (i, f) in functions.into_iter().enumerate() {
+    // randomizing function run order to get rid of the "first function is the slowest" effect
+    functions.shuffle(&mut rnd);
+
+    for (i, f) in functions.into_iter() {
         let value = measure(f);
-        writeln!(stderr(), "factorial_{} = {}", i + 1, value).unwrap();
+        writeln!(stderr(), "factorial_{} = {}", i, value).unwrap();
         min = min.min(value);
         max = max.max(value);
     }
@@ -119,6 +125,7 @@ fn main() {
 }
 
 #[cfg(not(feature = "criterion"))]
+#[inline(never)]
 fn measure(f: fn(u64) -> u64) -> u64 {
     const SAMPLES: usize = 10000;
     const SAMPLE_SIZE: usize = 100;

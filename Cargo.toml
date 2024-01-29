@@ -9,6 +9,7 @@ proc-macro = true
 [dependencies]
 criterion = { verson = "0.5.1", optional = true }
 paste = "1.0.14"
+rand = "0.8.5"
 
 [features]
 criterion = ["dep:criterion"]
